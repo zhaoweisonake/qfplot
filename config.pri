@@ -1,0 +1,2 @@
+
+PLOTTER_SHARED_LIBRARY = yes
