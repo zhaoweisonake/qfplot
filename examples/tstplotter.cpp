@@ -8,19 +8,15 @@
 TSTPlotter::TSTPlotter(QWidget *parent)
     : QMainWindow(parent)
 {
-  cnv = new Canvas();
-  plt = new RTPlotter(cnv,this);
+  plt = new Plotter(CanvasPtr(),this);
   data = new CurveData(200);
-  plt->setDiapason(180);
-  scalex = dynamic_cast<LinearScaleX*>(plt->xScale());
-  scaley = new LinearScaleY();
 
-  scaley->setFlags(LinearScale::ManualDiapason);
-  scalex->setFlags(LinearScale::ManualDiapason);
-  scaley->setManualDiapason(-12,12);
-  scalex->setManualDiapason(0,400);
+  plt->xScale()->setFlags(Scale::ManualDiapason);
+  plt->yScale()->setFlags(Scale::ManualDiapason);
+  plt->yScale()->setManualDiapason(-12,12);
+  plt->xScale()->setManualDiapason(0,80);
   
-  crv = new Curve( "Test curve", "l/s", scalex, scaley, data );
+  crv = new Curve( "Test curve", "l/s", plt->xScale(), plt->yScale(), data );
   
   plt->attachDynamicItem(crv);
 
@@ -28,33 +24,20 @@ TSTPlotter::TSTPlotter(QWidget *parent)
   plt->attachStaticItem(grid);
 
   setCentralWidget(plt);
-  timer.connect( &timer, SIGNAL(timeout()), plt, SLOT(drawNewData()) );
-  timer.connect( &timer, SIGNAL(timeout()), this, SLOT(newData())  );
-  
+  newData(); 
 };
 
 TSTPlotter::~TSTPlotter()
 {
-  //delete scalex;
-  //delete scalex;
-  //delete crv;
-  delete plt;
-  delete cnv;
+  //delete grid;
+  delete crv;
+  delete data;
 };
 
 void TSTPlotter::newData()
 {
-	static int i;
-	
-	data->pushBack( QPointF(i*2,10*sin((double)i/5)*rand()/RAND_MAX) );
-	i++;
-	
-	if( i > 200 )
-	   i =0;
-	  //qWarning("timeout");
+	int i;
+	for(i=0;i<50;i++)
+	 data->pushBack( QPointF(i*2,10*sin((double)i/5)*rand()/RAND_MAX) );
 };
 
-void TSTPlotter::start()
-{
-	timer.start(50);
-};

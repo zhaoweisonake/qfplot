@@ -33,7 +33,7 @@ class PLOTTER_EXPORT Curve : public PlotItem
 {
 
 public:
-   Curve( const QString& nm, const QString& dmn, Scale* sx=NULL, Scale* sy=NULL, CurveData* dt=NULL );
+   Curve( const QString& nm, const QString& dmn, ScalePtr sx, ScalePtr sy, CurveData* dt=NULL );
    virtual ~Curve();
    
    virtual Rect  drawFragment ( QPainter &painter, const Rect& drawRect );
@@ -42,6 +42,15 @@ public:
    virtual void  clearInvRect();
 
 protected:
+   /**
+    * Auxilary method.
+    * It calculates y coordinate on line from point begin to point end
+    * by coord x.
+    * @param begin start point of line
+    * @param end   end point of line
+    * @param x     x coord.
+    * @return Qpoint instance that contains x,y 
+    */
    QPoint pointInInterval( const QPoint& begin, const QPoint& end, int x ) const;
 
 private:
@@ -56,7 +65,7 @@ private:
    /**
     * Maps certain point from data dimension to plotter dimension
     * @param point source from data dimension 
-    * @return 
+    * @return point in plotter dimension
     */
    inline QPoint real2plot( const QPointF& point )
    {

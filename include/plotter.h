@@ -1,23 +1,25 @@
 #ifndef PLOTTER_H
 #define PLOTTER_H
 
-
-#include <QPen>
-#include <QBrush>
+#include <QSharedPointer>
 #include <QList>
+#include <QBrush>
 #include <QWidget>
+#include <QKeyEvent>
 
 #include "plotitem.h"
 #include "rect.h"
 #include "rectf.h"
+#include "scale.h"
+#include "canvas.h"
 
 class QFrame;
 class QGridLayout;
 
 class PlotItem;
-class Canvas;
 class PlotItems;
 class ScaleWidget;
+class LinearScaleX;
 
 //PLOTTER_IMPORT has hi prority them PLOTTER_EXPORT
 #if defined(Q_WS_WIN)
@@ -37,9 +39,10 @@ class ScaleWidget;
 #endif
 
 /**
- * Class Plotter
- * Basic class for mantaining all plot items, axis, scales, grids and so on.
- * The main widget of plotter is Canvas. A canvas represents the draving area of the plotter.
+ * Class Plotter is a widget that contains curves, scales, grids and other items
+ * these derived from PlotItem. 
+ * The central part of the widget is drawing area. On borders are placed scale widgets.
+ * This class isn't be able to provide quick redraw. 
  */
 class PLOTTER_EXPORT Plotter : public QWidget
 {
@@ -49,40 +52,32 @@ public:
   /**
    * Constructors
    */
-   Plotter( Canvas *cnv = 0, QWidget *parent = 0, Qt::WindowFlags f = 0 );
-   ~Plotter();
+   Plotter( CanvasPtr cnv, QWidget *parent = 0, Qt::WindowFlags f = 0 );
+   virtual ~Plotter();
 
-  /**
-   * Accessor Methods
-   */
-   inline void setPen( const QPen & pen )
-   {
-      this->pen = pen;
-   };
-   
-   inline void setPen(const QColor &color)
-   {
-   	  setPen( QPen( color ) );
-   };
-   
-   inline void setPen ( Qt::PenStyle style )
-   {
-   	  setPen( QPen( style ) );
-   };
-
+   /**
+    * Sets custom brush for fill background
+    * @param brush Brush for filling background 
+    */
    void setBrush( const QBrush & brush )
    {
       this->brush = brush;
    };
    
-   inline void setBrush ( Qt::BrushStyle style )
+   /**
+    * Sets the brush with given color and style. 
+    * By default style is solid pattern. 
+    * @param color color. @see QColor
+    * @param style @see Qt::BrushStyle. It describes fill style. 
+    */
+   inline void setBrush ( QColor &color, Qt::BrushStyle style = Qt::SolidPattern )
    {
-   	  setBrush( QBrush( style ) );
+   	  setBrush( QBrush( color, style ) );
    };
    
-   void attachCanvas( Canvas *cnv );
+   void attachCanvas( CanvasPtr cnv );
    
-   Canvas*  detachCanvas();
+   CanvasPtr  detachCanvas();
        
    /**
     * Operations
@@ -96,21 +91,24 @@ public:
     {
     	dynamicItems.append( item );
     };
-    
-    ScaleWidget* createXScale( Scale* s);
-  
+
+    inline ScalePtr xScale()
+    { return currentXScale; };
+
+    inline ScalePtr yScale()
+    { return currentYScale; };
+
+    //LinearScaleX	*xScale;//TODO delete it
+
 public slots:
    /**
-    * Draw all items. It should call wheb canvas change size.
+    * Draw all items. It should call when canvas change size.
     */
    void buildFrame();
    
-   /**
-    * Draw new data for all dynamic items and repaint changed area on canvas.
-    */
-   void drawNewData();
-   
 protected:
+   virtual bool eventFilter(QObject *obj, QEvent *event);
+
    /**
    * drawStaticItems draws all static items inside rectangle that is defined by argumen requestRect.
    * It isn't the same as drawing on the screen! All plotter changes will be saved inside own canvas.
@@ -118,31 +116,28 @@ protected:
    */
    const Rect drawStaticItems ( const Rect& requestRect );
 
+   virtual void keyPressEvent( QKeyEvent *event);
+
+   virtual void keyReleaseEvent( QKeyEvent *event);
+
    /**
    * This method corresponds to drawStaticItems but it draws all dynamic items.
    */
    const Rect drawDynamicItems( const Rect& requestRect );
 
-   /**
-   * @return returns rect that must be erased for new parts of dynamic items.
-   */
-   //const Rect clearRect( void );
-
    typedef QList<PlotItem*> ItemList;
    
    ItemList   staticItems;
    ItemList   dynamicItems;
-   ItemList   onScreenItems; //TODO for future
+   //ItemList   onScreenItems; //TODO for future
+
+   ScalePtr  currentXScale;
+   ScalePtr  currentYScale;
 
 private:
+   QBrush brush;  //for background
 
-   QList<ScaleWidget*> YScales;
-   QList<ScaleWidget*> XScales;
-
-   QPen pen;
-   QBrush brush;
-   
-   Canvas* canvas;
+   CanvasPtr canvas;
    QGridLayout *gridLayout;
    
    QFrame *left;

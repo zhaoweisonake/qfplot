@@ -2,6 +2,7 @@
 #define CANVAS_H
 
 #include <QFrame>
+#include <QSharedPointer>
 
 class QPixmap;
 class QResizeEvent;
@@ -24,8 +25,11 @@ class QPaintEvent;
 #  define PLOTTER_EXPORT
 #endif
 
+class Canvas;
+typedef QSharedPointer<Canvas> CanvasPtr;
+
 /**
- * Class Canvas provide cache pixmaps for drawing curves, axis, grid and othe items.
+ * Class Canvas provide cache pixmaps for drawing curves, axis, grid and other items.
  * Not changed plotter items should draw on static pixmap. Changed plotter items
  * should draw on dynamic pixmap. Static pixmap always has transparent background.
  * Dynamic pixmap has plotter background.

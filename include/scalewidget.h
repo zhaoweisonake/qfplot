@@ -28,7 +28,8 @@
 #endif
 
 /**
- * Class ScaleWidget
+ * Class ScaleWidget is scale. 
+ * This widget can be placed on the left, right, top or botttom side of plotter.
  * 
  */
 class PLOTTER_EXPORT ScaleWidget : public QWidget
@@ -37,15 +38,16 @@ class PLOTTER_EXPORT ScaleWidget : public QWidget
 	
 public:
    enum ScaleWidgetFlags{
-	//Enables view text label of this ScaleWidget. @see setLabel()
-   	ViewLabel		= 1,
+      //Enables view text label of this ScaleWidget. @see setLabel()
+   	ViewLabel		 = 1,
    	//Enables view second points. It's point between primary points
    	ViewSecondPoint = 2,
    	//Enables numbers on scale
-  	ViewNumbers		= 4,
- 	//Enables line between scale and canvas
-   	ViewLine		= 8,
+  	   ViewNumbers		 = 4,
+ 	   //Enables line between scale and canvas
+   	ViewLine		    = 8,
    };
+
    Q_DECLARE_FLAGS(ScaleFlag, ScaleWidgetFlags);
    
    /**
@@ -54,15 +56,15 @@ public:
     */
    enum Orientation
    { 
-  	Top				= 1,
-  	Right			= 2,
-  	Bottom			= 4,
-  	Left			= 8
+  	   Top		= 1,
+  	   Right		= 2,
+  	   Bottom	= 4,
+  	   Left		= 8
    };
    
-    //Creates Scale widget with certain Scale
-    ScaleWidget ( Scale* scale, QWidget * parent = 0, Qt::WindowFlags f = 0);
-    ~ScaleWidget(){};
+   //Creates Scale widget with certain Scale
+   ScaleWidget ( Scale* scale, QWidget * parent = 0, Qt::WindowFlags f = 0);
+   ~ScaleWidget(){};
 
 protected:
    virtual void paintEvent ( QPaintEvent* event );
@@ -88,26 +90,26 @@ protected:
    
 private:
 	ScaleFlag	flags;
-    Scale*	scale;
-    QLabel  label;
+   Scale*	scale;
+   QLabel  label;
     
-    QPen	penFirstPoint;
-    QPen	penSecondPoint;
-    QFont   numbersFont;
+   QPen	penFirstPoint;
+   QPen	penSecondPoint;
+   QFont   numbersFont;
     
-    //Length of line for first points
-    int		firstPointLen;
+   //Length of line for first points
+   int		firstPointLen;
     
-    //Length of line for second points
-    int		secondPointLen;
+   //Length of line for second points
+   int		secondPointLen;
     
-    double		firstDivision;
-    double		secondDivision;
+   double		firstDivision;
+   double		secondDivision;
     
-    //Current orientation on Plotter
-    Orientation	currOrientation;
+   //Current orientation on Plotter
+   Orientation	currOrientation;
     
-    void (ScaleWidget::*paintHnd)( QPainter& painter, const Rect& rect  );
+   void (ScaleWidget::*paintHnd)( QPainter& painter, const Rect& rect  );
 };
  
 #endif //SCALEWIDGET_H

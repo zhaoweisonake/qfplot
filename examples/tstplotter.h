@@ -4,7 +4,7 @@
 //#define PLOTTER_IMPORT
 
 #include <scalewidget.h>
-#include <rtplotter.h>
+#include <plotter.h>
 #include <canvas.h>
 #include <curve.h>
 #include <linearscalex.h>
@@ -13,7 +13,6 @@
 
 
 #include <QMainWindow>
-#include <QTimer>
 
 class TSTPlotter : public QMainWindow
 {
@@ -23,14 +22,11 @@ public:
     TSTPlotter(QWidget *parent = 0);
     ~TSTPlotter();
     
-    void start();
-
 public slots:
 	void newData();
     
 private:
-    Canvas  *cnv;
-    RTPlotter	*plt;
+    Plotter	*plt;
 	
     CurveData	*data;
 		    
@@ -38,8 +34,6 @@ private:
     LinearScaleY *scaley;
     
     Curve *crv;
-    
-    QTimer timer;
 };
 
 #endif // TSTPLOTTER_H

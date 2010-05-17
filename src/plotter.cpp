@@ -3,69 +3,83 @@
 #include <QVBoxLayout>
 #include <QHBoxLayout>
 #include <QFrame>
+#include <QMouseEvent>
 
 #include "plotter.h" 
 #include "canvas.h"
 #include "scale.h"
 #include "scalewidget.h"
+#include "linearscalex.h"
+#include "linearscaley.h"
 
-Plotter::Plotter( Canvas *cnv, QWidget *parent, Qt::WindowFlags f):QWidget( parent , f )
+Plotter::Plotter( CanvasPtr cnv, QWidget *parent, Qt::WindowFlags f):QWidget( parent, f )
 {
-    QHBoxLayout *hbl;
-    QVBoxLayout *vbl;
+   QHBoxLayout *hbl;
+   QVBoxLayout *vbl;
+
+   gridLayout = new QGridLayout(this);
+   gridLayout->setSpacing(0);
+   gridLayout->setMargin(0);
+
+   left = new QFrame(this);
+   left->setFrameShape(QFrame::NoFrame);
+   left->setFrameShadow(QFrame::Raised);
+
+   gridLayout->addWidget(left, 1, 0, 1, 1);
     
-    setBrush(Qt::lightGray);//TODO must be moved to plotter builder
+   hbl = new QHBoxLayout(left);
+   hbl->setSpacing(0);
+   hbl->setMargin(0);
 
-    gridLayout = new QGridLayout(this);
-    gridLayout->setSpacing(0);
-    gridLayout->setMargin(0);
+   if( cnv.isNull() )
+   {
+       cnv = CanvasPtr( new Canvas() );
+   }
+	attachCanvas( cnv );
 
-    left = new QFrame(this);
-    left->setFrameShape(QFrame::NoFrame);
-    left->setFrameShadow(QFrame::Raised);
+   if( currentXScale.isNull() )
+   {
+      currentXScale = ScalePtr( new LinearScaleX() );
+   };
 
-    gridLayout->addWidget(left, 1, 0, 1, 1);
+   if( currentYScale.isNull() )
+   {
+      currentYScale = ScalePtr( new LinearScaleY() );
+   };
+
+   right = new QFrame(this);
+   right->setFrameShape(QFrame::NoFrame);
+   right->setFrameShadow(QFrame::Raised);
+
+   gridLayout->addWidget(right, 1, 2, 1, 1);
     
-    hbl = new QHBoxLayout(left);
-    hbl->setSpacing(0);
-    hbl->setMargin(0);
+   hbl = new QHBoxLayout(right);
+   hbl->setSpacing(0);
+   hbl->setMargin(0);
 
-    if( cnv != NULL )
-	   attachCanvas( cnv );
+   top = new QFrame(this);
+   top->setFrameShape(QFrame::NoFrame);
+   top->setFrameShadow(QFrame::Raised);
 
-    right = new QFrame(this);
-    right->setFrameShape(QFrame::NoFrame);
-    right->setFrameShadow(QFrame::Raised);
-
-    gridLayout->addWidget(right, 1, 2, 1, 1);
+   gridLayout->addWidget(top, 0, 1, 1, 1);
     
-    hbl = new QHBoxLayout(right);
-    hbl->setSpacing(0);
-    hbl->setMargin(0);
+   vbl = new QVBoxLayout(top);
+   vbl->setSpacing(0);
+   vbl->setMargin(0);
 
-    top = new QFrame(this);
-    top->setFrameShape(QFrame::NoFrame);
-    top->setFrameShadow(QFrame::Raised);
+   bottom = new QFrame(this);
+   bottom->setFrameShape(QFrame::NoFrame);
+   bottom->setFrameShadow(QFrame::Raised);
 
-    gridLayout->addWidget(top, 0, 1, 1, 1);
+   gridLayout->addWidget(bottom, 2, 1, 1, 1);
     
-    vbl = new QVBoxLayout(top);
-    vbl->setSpacing(0);
-    vbl->setMargin(0);
-
-    bottom = new QFrame(this);
-    bottom->setFrameShape(QFrame::NoFrame);
-    bottom->setFrameShadow(QFrame::Raised);
-
-    gridLayout->addWidget(bottom, 2, 1, 1, 1);
+   vbl = new QVBoxLayout(bottom);
+   vbl->setSpacing(0);
+   vbl->setMargin(0);
     
-    vbl = new QVBoxLayout(bottom);
-    vbl->setSpacing(0);
-    vbl->setMargin(0);
-    
-    setLayout(gridLayout);
+   setLayout(gridLayout);
 
-    //xScale = QSharedPointer<MyObject>(new MyObject, doDeleteLater);
+   setBrush(Qt::lightGray);//TODO must be moved to plotter builder
 };
  
 Plotter::~Plotter()
@@ -90,8 +104,8 @@ void Plotter::buildFrame( )
       while (i != dynamicItems.end() )
       {
          (*i)->getScaleY()->changeDiapason( (*i)->dataRect().height(), canvas->height() );
-	 (*i)->getScaleX()->changeDiapason( (*i)->dataRect().width(), canvas->width() );
-	  i++;
+	      (*i)->getScaleX()->changeDiapason( (*i)->dataRect().width(), canvas->width() );
+	      i++;
       };
     }else{
        qWarning("WARNING: Plotter not contain canvas");
@@ -113,24 +127,20 @@ const Rect Plotter::drawStaticItems( const Rect& requestRect )
    
    if( canvas != NULL )
    {
-   	  QPainter   painter;
-   	  
-   	  ItemList::iterator i = staticItems.begin();
-   	   	  
-   	  painter.begin( canvas->getStaticPixmap() );
-	  	
-	  i = staticItems.begin();
+      QPainter   painter;
+   	ItemList::iterator i = staticItems.begin();
+   
+      painter.begin( canvas->getStaticPixmap() );
+      i = staticItems.begin();
 	 	
 	  while (i != staticItems.end() )
 	  {
 		  if( resultRect.isNull() )
 		     resultRect = (*i)->drawFragment( painter, requestRect );
 		  else
-		  	 resultRect = resultRect.united( (*i)->drawFragment( painter, requestRect ) );
-		  
+		  	 resultRect = resultRect.united( (*i)->drawFragment( painter, requestRect ) ); 
 	     i++;
 	  };
-	  
 	  painter.end();
  	}else{
  		 qWarning("WARNING: Plotter not contain canvas");
@@ -158,10 +168,9 @@ const Rect Plotter::drawDynamicItems( const Rect& requestRect )
       while (i != dynamicItems.end() )
       {
          if( resultRect.isNull() )
-	    resultRect = (*i)->drawFragment( painter, requestRect );
-	 else
-	   resultRect = resultRect.united( (*i)->drawFragment( painter, requestRect ) );
-
+	         resultRect = (*i)->drawFragment( painter, requestRect );
+	      else
+	         resultRect = resultRect.united( (*i)->drawFragment( painter, requestRect ) );
          i++;
       };
       painter.end();
@@ -170,98 +179,57 @@ const Rect Plotter::drawDynamicItems( const Rect& requestRect )
    };
    return resultRect;
 };
-
-/**
- * SLOT Method
- * Draw only new data on the plotter
- */
-void Plotter::drawNewData()
-{
-   Rect clearRect;
-   int max_pen_width = 0;
- 
-   if( canvas != NULL )
-   {
-      QPainter   painter;
-      painter.begin( canvas->getDynamicPixmap() );
-      painter.setRenderHint(QPainter::Antialiasing, true);
-
-      ItemList::iterator i = dynamicItems.begin(); 
-      while (i != dynamicItems.end() )
-      { 
-         //Update scales for all items.
-         (*i)->getScaleY()->changeDiapason( (*i)->dataRect().height(), canvas->height() );
-	 (*i)->getScaleX()->changeDiapason( (*i)->dataRect().width(), canvas->width() );
-         
-         //Update max_pen_width.  
-         max_pen_width = qMax( max_pen_width, (*i)->Pen().width() );
- 
-         //Calculate rectangle that must be erased before drawing.
-         if( clearRect.isNull() )
-	    clearRect = (*i)->invRect();
-	 else
-         {
-            //The Rect::united isn't applicable here.
-            clearRect.setRight( qMax( clearRect.right(), (*i)->invRect().right() ) );
-            clearRect.setLeft( qMax( clearRect.left(), (*i)->invRect().left() ) );
-         }
-	 i++;
-      };
-
-      //We don't know vertical range of new data, so clear maximum vertical range 
-      clearRect.setY(0);
-      clearRect.setHeight( canvas->height() );
-
-      //Tune erase area for curves width
-      clearRect.setWidth( clearRect.width() + max_pen_width );//TODO add gap
-      clearRect.setLeft( clearRect.left() + max_pen_width/2 );
-
-      //Erase area
-      painter.fillRect( clearRect, brush );
-
-      //Draw all dynamic items.
-      i = dynamicItems.begin();
-      while (i != dynamicItems.end() )
-      { 
-         (*i)->drawFragment( painter, (*i)->invRect() );
-	 (*i)->clearInvRect();
-	 i++;
-      };
-   }else{
-      qWarning("WARNING: Plotter not contain canvas");
-   };
-
-   clearRect.setLeft( clearRect.left() - max_pen_width );
-   canvas->repaint( clearRect );
-};
-
 /**
  * Attaches canvas
  */
-void Plotter::attachCanvas( Canvas *cnv )
+void Plotter::attachCanvas( CanvasPtr cnv )
 {
    canvas = cnv;
-   gridLayout->addWidget(canvas, 1, 1, 1, 1);
-   connect( canvas, SIGNAL(sizeChanged()), this, SLOT(buildFrame()) );
+   gridLayout->addWidget(canvas.data(), 1, 1, 1, 1);
+   connect( canvas.data(), SIGNAL(sizeChanged()), this, SLOT(buildFrame()) );
+   canvas->installEventFilter(this);
+   canvas->setFocus();
 };
 
 /**
  * Detasches canvas
  */
-Canvas* Plotter::detachCanvas()
+CanvasPtr Plotter::detachCanvas()
 {
-   	  gridLayout->removeWidget( canvas );
-   	  canvas->setParent(0);
-   	  disconnect( this, SLOT(buildFrame()) );
-   	  return canvas;
+   canvas->removeEventFilter(this);
+   disconnect( this, SLOT(buildFrame()) );
+   gridLayout->removeWidget( canvas.data() );
+   canvas->setParent(0);
+   return canvas;
 };
 
-ScaleWidget*  Plotter::createXScale( Scale* s )
+bool Plotter::eventFilter(QObject *obj, QEvent *event)
 {
-	ScaleWidget *sw = new ScaleWidget( s, left);
-	
-	XScales.append(sw);
-	left->layout()->addWidget( sw );
-	
-	return sw;
-};
+   if( event->type() == QEvent::MouseMove )
+   {
+      qWarning("Move"); return true;
+      //return this->MouseMove( obj, static_cast<QMouseEvent *>(event));
+   }
+
+   //qWarning("Cought Event %d",event->type());
+   // standard event processing
+   return QObject::eventFilter(obj, event);
+}
+
+void Plotter::keyPressEvent( QKeyEvent *event )
+{
+	 qWarning("Press %d", event->key());
+}
+
+void Plotter::keyReleaseEvent( QKeyEvent *event )
+{
+    if(event->key() == Qt::Key_Equal)
+    {
+       qWarning("Increase zoom 0.1");
+       
+    }
+    if(event->key() == Qt::Key_Minus)
+    {
+       qWarning("Decrease zoom 0.1");
+    }
+}

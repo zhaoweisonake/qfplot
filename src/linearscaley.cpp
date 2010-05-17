@@ -1,15 +1,21 @@
 #include "linearscaley.h"
 
 #include <math.h>
-/**
- * Constructors/Destructors
- */
-/**
- * Methods
- */
+
+
+double LinearScaleY::plot2real(double val)const
+{
+	return (val-x0)/Mx;
+};
+
+int LinearScaleY::real2plot(double val)const
+{
+	return static_cast<int>(val*Mx+x0);
+};
+
 void LinearScaleY::changeDiapason (double dataDiapason, double plotDiapason)
 { 
-	Mx = -plotDiapason/(testFlags(LinearScale::ManualDiapason) ? fabs(max-min) : dataDiapason);
+	Mx = -plotDiapason/(testFlags(Scale::ManualDiapason) ? fabs(max-min) : dataDiapason);
 	x0 = (int)( plotDiapason - min*Mx );
 };
 

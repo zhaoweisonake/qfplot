@@ -8,8 +8,8 @@
 
 #include "rect.h"
 #include "rectf.h"
+#include "scale.h"
 
-class Scale;
 class CurveData;
 
 /**
@@ -65,7 +65,7 @@ public:
    /**
     * 
     */
-   inline Scale*  getScaleX () const
+   inline ScalePtr  getScaleX () const
    {
    	  return scaleX;
    };
@@ -73,7 +73,7 @@ public:
    /**
     * 
     */
-   Scale*  getScaleY ()const
+   ScalePtr  getScaleY ()const
    {
    	  return scaleY;
    };
@@ -82,14 +82,14 @@ public:
     * 
     * @param scale 
     */
-   void  setScaleX (Scale* scale);
+   void  setScaleX (ScalePtr scale);
       
    
    /**
     * 
     * @param scale 
     */
-   void  setScaleY (Scale* scale);
+   void  setScaleY (ScalePtr scale);
       
    virtual const Rect invRect()=0;
    
@@ -106,8 +106,8 @@ public:
    virtual const RectF& dataRect()const=0;
       
 protected:
-    QPen 	pen;
-    Scale* 	scaleX;
-    Scale* 	scaleY;
+    QPen 	   pen;
+    ScalePtr 	scaleX;
+    ScalePtr 	scaleY;
 };
 #endif //PLOTITEM_H

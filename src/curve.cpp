@@ -11,13 +11,13 @@
 /**
  * Constructors/Destructors
  */
-Curve::Curve( const QString& nm, const QString& dmn, Scale* sx, Scale* sy, CurveData* dt )
+Curve::Curve( const QString& nm, const QString& dmn, ScalePtr sx, ScalePtr sy, CurveData* dt )
    :name(nm),dimension(dmn)
 {
-	scaleX = (sx == NULL) ? new LinearScaleX() : sx ;
-	scaleY = (sy == NULL) ? new LinearScaleY() : sy ;
+	scaleX = ( sx.isNull() ) ? ScalePtr( new LinearScaleX()) : sx ;
+	scaleY = ( sy.isNull() ) ? ScalePtr( new LinearScaleY()) : sy ;
 	
-    data = dt == NULL ? new CurveData(1000) : dt ; 		
+   data = dt == NULL ? new CurveData(1000) : dt ; 		
 };
 
 Curve::~Curve()
@@ -31,45 +31,53 @@ Rect Curve::drawFragment ( QPainter &painter, const Rect& drawRect )
 	
 	painter.setPen( pen );
 	
+   //Check not enought data.
 	if( data->size() > 2 )
 	{
-           QPoint  p1,p2;
-           int	   i = data->size()-1;
+      QPoint  p1,p2;
+      //Index in the data. lets go from end to begin
+      int	   i =  data->size()-1;
 
-          //all point aren't inside rect must be passed       
-          if((drawRect.width() != 0) && (drawRect.height() != 0))
-          {
-            //Finf a first point in the drawing area
-             while( !drawRect.contains( real2plot(data->point(i)) ) )
-               --i;
-
-             if( i != data->size()-1 )
-             {
-                 QPoint firstPoint = pointInInterval( real2plot( data->point(i+1) ), p1 = real2plot( data->point(i) ), drawRect.right() );
-                 painter.drawLine( p1,  firstPoint );
-                 rect = Rect( drawRect.right(), p1.y(), 0, 0 );
-             };
+      //all points aren't inside rect must be passed       
+      if((drawRect.width() != 0) && (drawRect.height() != 0))
+      {
+         //Finf a first point in the drawing area
+         while( !drawRect.contains( real2plot(data->point(i)) ) )
+            --i;
+ 
+         if( i != data->size()-1 )
+         {
+            QPoint firstPoint = pointInInterval( real2plot( data->point(i+1) ),
+                                                 p1 = real2plot( data->point(i) ),
+                                                 drawRect.right() );
+            painter.drawLine( p1,  firstPoint );
+            rect = Rect( drawRect.right(), p1.y(), 0, 0 );
+         };
                      
-          }else{
-             return Rect();//Nothing for drawing. retrurn null rect.
-          }
+      }else{
+          //Was requested drawing rect with 0 width or height.
+          //Nothing to do here.
+          return Rect(); 
+      }
        
-          p1 = real2plot( data->point(i) );
-          rect = Rect( p1.x(), p1.y(), 0, 0 );
-          //Draw lines 
-          for( ; i >= 0; i--, p1=p2 )
-          {
-             p2 = real2plot( data->point(i) );
-             if( p2.x() < drawRect.left() )
-             {
-                  break;
-             }
-             painter.drawLine( p1, p2 );
-	     rect.expand( p2 );
-          };
-       }; 
-
-    return rect.normalized();
+      p1 = real2plot( data->point(i) );
+      rect = Rect( p1.x(), p1.y(), 0, 0 );
+      //Main loop of draw lines 
+      for( ; i >= 0; i--, p1=p2 )
+      {
+         p2 = real2plot( data->point(i) );
+         if( p2.x() < drawRect.left() )
+         {
+            QPoint lastPoint = pointInInterval( p1, p2, drawRect.left() );
+            painter.drawLine( lastPoint, p1 );
+            rect.expand( lastPoint );
+            break;
+         }
+         painter.drawLine( p1, p2 );
+	      rect.expand( p2 );
+      };
+   }; 
+   return rect.normalized();
 };
 
 const Rect Curve::invRect()
@@ -79,7 +87,7 @@ const Rect Curve::invRect()
 
 void Curve::clearInvRect()
 {
-        qWarning("data=%p\n",data);
+   //qWarning("data=%p\n",data);
 	data->clearInvRect();
 };
 

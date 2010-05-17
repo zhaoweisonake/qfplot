@@ -38,7 +38,5 @@ public:
 private:
     int xcount;
     int ycount;
- 
 };
 #endif //GRID_H
-

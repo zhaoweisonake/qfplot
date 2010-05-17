@@ -17,6 +17,7 @@ Canvas::Canvas(QWidget *parent, Qt::WindowFlags f):QFrame(parent,f)
    setAttribute( Qt::WA_NoSystemBackground, true );
    setAttribute( Qt::WA_OpaquePaintEvent, true );
    
+   setCursor(Qt::CrossCursor);
    QSizePolicy sizePolicy(static_cast<QSizePolicy::Policy>(7), static_cast<QSizePolicy::Policy>(7));
    sizePolicy.setHorizontalStretch(0);
    sizePolicy.setVerticalStretch(0);

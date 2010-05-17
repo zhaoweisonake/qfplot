@@ -2,7 +2,6 @@
 #include <math.h>
 #include <rtlinearscalex.h>
 
-
 void RTLinearScaleX::setRefPoint( double val, double pos, double d )
 {
 };

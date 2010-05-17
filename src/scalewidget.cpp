@@ -17,7 +17,7 @@
  	
  	//setMinimumSize( QSize(0,30) );
  	
- 	firstPointLen  = 15;
+ 	 firstPointLen  = 15;
     secondPointLen = 7;
     
     firstDivision = 20;
